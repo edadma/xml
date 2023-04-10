@@ -2,8 +2,9 @@ package io.github.edadma.xml
 
 import io.github.edadma.char_reader.CharReader
 import io.github.edadma.char_reader.CharReader.EOI
-
 import pprint.pprintln
+
+import scala.collection.mutable.ListBuffer
 //  pprintln(XML("""
 //      |<book id="JHN"><id id="JHN">43-JHN-web.sfm World English Bible (WEB)
 //      |</id><ide charset="UTF-8" /><h>John
@@ -43,19 +44,6 @@ object XML:
         buf += c
         consume(r.next, until, buf)
 
-  private def parseEndTag(r: CharReader): Option[(CharReader, String, CharReader)] =
-    if r.ch == '<' then
-      val r1 = skip(r.next)
-
-      if r1.ch != '/' then None
-      else
-        val r2 = skip(r1.next)
-        val (end, r3) = consume(r2, _ == '>')
-
-        if r3.ch != '>' then None
-        else Some((r2, end, r3.next))
-    else None
-
   private def parseStartTag(r: CharReader): Option[(CharReader, String, Seq[(String, String)], Boolean, CharReader)] =
     if r.ch == '<' then
       val r1 = skip(r.next)
@@ -71,8 +59,27 @@ object XML:
       else Some((r1, start, Nil, false, r2.next))
     else None
 
-  //  private def parseSeq(r: CharReader): Seq[XML] =
-//    val (xml, r4) = parse(r3.next)
+  private def parseEndTag(r: CharReader): Option[(CharReader, String, CharReader)] =
+    if r.ch == '<' then
+      val r1 = skip(r.next)
+
+      if r1.ch != '/' then None
+      else
+        val r2 = skip(r1.next)
+        val (end, r3) = consume(r2, _ == '>')
+
+        if r3.ch != '>' then None
+        else Some((r2, end, r3.next))
+    else None
+
+  private def parseSeq(r: CharReader, buf: ListBuffer[XML] = new ListBuffer): (Seq[XML], CharReader) =
+    if r.ch == EOI || parseEndTag(r).isDefined then (buf.toList, r)
+    else
+      val (xml, r1) = parse(r)
+
+      buf += xml
+      parseSeq(r1, buf)
+
   def parse(r: CharReader): (XML, CharReader) =
     r.ch match
       // todo: &amp; (&), &lt; (<), &gt; (>), &quot; ("), &apos; (')
@@ -84,14 +91,14 @@ object XML:
             if closed then
               (Element(r0, start, Nil, Nil), r1)
             else
-              val (seq, r2) = parse(r1)
+              val (seq, r2) = parseSeq(r1)
 
               parseEndTag(r2) match
                 case None => r2.error("expected end tag")
                 case Some((r3, end, r4)) =>
-                  if start != end then r3.error("start and end tags are not the same")
+                  if start != end then r3.error(s"start ($start) and end tags are not the same")
 
-                  (Element(r0, start, Nil, Seq(seq)), r4)
+                  (Element(r0, start, Nil, seq), r4)
       case _ =>
         val (text, r1) = consume(r, _ == '<')
 
