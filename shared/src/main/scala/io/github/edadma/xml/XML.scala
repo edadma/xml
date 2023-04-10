@@ -44,19 +44,21 @@ object XML:
         buf += c
         consume(r.next, until, buf)
 
+//  private def parseAttributes(r: CharReader): (Seq[(String, String)], CharReader) =
+
   private def parseStartTag(r: CharReader): Option[(CharReader, String, Seq[(String, String)], Boolean, CharReader)] =
     if r.ch == '<' then
       val r1 = skip(r.next)
-      val (start, r2) = consume(r1, c => c == '/' || c == '>')
+      val (start, r2) = consume(r1, c => c.isWhitespace || c == '/' || c == '>')
       val r3 = skip(r2)
 
       if r3.ch == '/' then
-        val r4 = skip(r2.next)
+        val r4 = skip(r3.next)
 
         if r4.ch != '>' then None
         else Some((r1, start, Nil, true, r4.next))
-      else if r2.ch != '>' then None
-      else Some((r1, start, Nil, false, r2.next))
+      else if r3.ch != '>' then None
+      else Some((r1, start, Nil, false, r3.next))
     else None
 
   private def parseEndTag(r: CharReader): Option[(CharReader, String, CharReader)] =
@@ -66,10 +68,11 @@ object XML:
       if r1.ch != '/' then None
       else
         val r2 = skip(r1.next)
-        val (end, r3) = consume(r2, _ == '>')
+        val (end, r3) = consume(r2, c => c.isWhitespace || c == '>')
+        val r4 = skip(r3)
 
-        if r3.ch != '>' then None
-        else Some((r2, end, r3.next))
+        if r4.ch != '>' then None
+        else Some((r2, end, r4.next))
     else None
 
   private def parseSeq(r: CharReader, buf: ListBuffer[XML] = new ListBuffer): (Seq[XML], CharReader) =
