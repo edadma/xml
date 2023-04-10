@@ -43,7 +43,7 @@ object XML:
         buf += c
         consume(r.next, until, buf)
 
-  private def parseEndTag(r: CharReader): Option[(String, CharReader, CharReader)] =
+  private def parseEndTag(r: CharReader): Option[(CharReader, String, CharReader)] =
     if r.ch == '<' then
       val r1 = skip(r.next)
 
@@ -53,35 +53,45 @@ object XML:
         val (end, r3) = consume(r2, _ == '>')
 
         if r3.ch != '>' then None
-        else Some((end, r2, r3.next))
+        else Some((r2, end, r3.next))
     else None
 
+  private def parseStartTag(r: CharReader): Option[(CharReader, String, Seq[(String, String)], Boolean, CharReader)] =
+    if r.ch == '<' then
+      val r1 = skip(r.next)
+      val (start, r2) = consume(r1, c => c == '/' || c == '>')
+      val r3 = skip(r2)
+
+      if r3.ch == '/' then
+        val r4 = skip(r2.next)
+
+        if r4.ch != '>' then None
+        else Some((r1, start, Nil, true, r4.next))
+      else if r2.ch != '>' then None
+      else Some((r1, start, Nil, false, r2.next))
+    else None
+
+  //  private def parseSeq(r: CharReader): Seq[XML] =
+//    val (xml, r4) = parse(r3.next)
   def parse(r: CharReader): (XML, CharReader) =
     r.ch match
       // todo: &amp; (&), &lt; (<), &gt; (>), &quot; ("), &apos; (')
       case EOI => r.error("unexpected end of input")
       case '<' =>
-        val r0 = skip(r.next)
-        val (start, r2) = consume(r0, !_.isLetter)
-        val r3 = skip(r2)
+        parseStartTag(r) match
+          case None => r.error("error parsing start tag")
+          case Some(r0, start, attrs, closed, r1) =>
+            if closed then
+              (Element(r0, start, Nil, Nil), r1)
+            else
+              val (seq, r2) = parse(r1)
 
-        if r3.ch == '/' then
-          val r4 = skip(r3.next)
+              parseEndTag(r2) match
+                case None => r2.error("expected end tag")
+                case Some((r3, end, r4)) =>
+                  if start != end then r3.error("start and end tags are not the same")
 
-          if r4.ch != '>' then r4.error("expected closing angle bracket of self-closing tag")
-
-          (Element(r0, start, Nil, Nil), r4.next)
-        else
-          if r3.ch != '>' then r3.error("expected closing angle bracket of start tag")
-
-          val (xml, r4) = parse(r3.next)
-
-          parseEndTag(r4) match
-            case None => r4.error("expected end tag")
-            case Some((end, r5, r6)) =>
-              if start != end then r5.error("start and end tags are not the same")
-
-              (Element(r0, start, Nil, Seq(xml)), r6)
+                  (Element(r0, start, Nil, Seq(seq)), r4)
       case _ =>
         val (text, r1) = consume(r, _ == '<')
 
