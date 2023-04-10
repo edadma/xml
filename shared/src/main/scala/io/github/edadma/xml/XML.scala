@@ -43,6 +43,19 @@ object XML:
         buf += c
         consume(r.next, until, buf)
 
+  private def parseEndTag(r: CharReader): Option[(String, CharReader, CharReader)] =
+    if r.ch == '<' then
+      val r1 = skip(r.next)
+
+      if r1.ch != '/' then None
+      else
+        val r2 = skip(r1.next)
+        val (end, r3) = consume(r2, _ == '>')
+
+        if r3.ch != '>' then None
+        else Some((end, r2, r3.next))
+    else None
+
   def parse(r: CharReader): (XML, CharReader) =
     r.ch match
       // todo: &amp; (&), &lt; (<), &gt; (>), &quot; ("), &apos; (')
@@ -63,24 +76,17 @@ object XML:
 
           val (xml, r4) = parse(r3.next)
 
-          if r4.ch != '<' then r4.error("expected opening angle bracket of end tag")
+          parseEndTag(r4) match
+            case None => r4.error("expected end tag")
+            case Some((end, r5, r6)) =>
+              if start != end then r5.error("start and end tags are not the same")
 
-          val r5 = skip(r4.next)
-
-          if r5.ch != '/' then r4.error("expected slash of end tag")
-
-          val r6 = skip(r5.next)
-          val (end, r7) = consume(r6, _ == '>')
-
-          if r7.ch != '>' then r7.error("expected closing angle brack of end tag")
-          if start != end then r6.error("start and end tags are not the same")
-
-          (Element(r0, start, Nil, Seq(xml)), r7.next)
-        end if
+              (Element(r0, start, Nil, Seq(xml)), r6)
       case _ =>
         val (text, r1) = consume(r, _ == '<')
 
         (Text(r, text), r1)
+  end parse
 
   def apply(s: scala.io.Source): XML =
     val (xml, r) = parse(skip(CharReader.fromString(s.mkString)))
