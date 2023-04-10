@@ -5,32 +5,9 @@ import io.github.edadma.char_reader.CharReader.EOI
 import pprint.pprintln
 
 import scala.collection.mutable.ListBuffer
-//  pprintln(XML("""
-//      |<book id="JHN"><id id="JHN">43-JHN-web.sfm World English Bible (WEB)
-//      |</id><ide charset="UTF-8" /><h>John
-//      |</h><toc level="1">The Good News According to John
-//      |</toc><toc level="2">John
-//      |</toc><toc level="3">John
-//      |</toc><p sfm="mt" level="2" style="mt2">The Good News According to
-//      |</p><p sfm="mt" style="mt1">John
-//      |</p><c id="1" />
-//      |<p style="p"><v id="1" bcv="JHN.1.1" />
-//      |<w s="G1722">In</w>
-//      |<w s="G3588">the</w>
-//      |<w s="G0746">beginning</w>
-//      |<w s="G1510">was</w>
-//      |<w s="G3588">the</w>
-//      |<w s="G3056">Word</w>,
-//      |</p></book>
-//      |""".stripMargin))
 
 object XML:
   private def skip(r: CharReader): CharReader = if r.ch.isWhitespace then skip(r.next) else r
-
-//  private def skipUntil(r: CharReader): CharReader =
-//    r.ch match
-//      case EOI => r
-//      case
 
   private def consume(
       r: CharReader,
@@ -44,21 +21,41 @@ object XML:
         buf += c
         consume(r.next, until, buf)
 
-//  private def parseAttributes(r: CharReader): (Seq[(String, String)], CharReader) =
+  private def parseAttributes(r: CharReader, buf: ListBuffer[(String, String)] = new ListBuffer): (Seq[(String, String)], CharReader) =
+    val r1 = skip(r)
+
+    if r1.ch.isLetter then
+      val (key, r2) = consume(r1, !_.isLetter)
+      val r3 = skip(r2)
+
+      if r3.ch != '=' then r3.error("error parsing attribute")
+
+      val r4 = skip(r3.next)
+
+      if r4.ch != '"' then r4.error("error parsing attribute")
+
+      val (value, r5) = consume(r4.next, _ == '"')
+
+      if r5.ch != '"' then r5.error("unclosed attribute value")
+
+      buf += (key -> value)
+      parseAttributes(r5.next, buf)
+    else (buf.toList, r)
 
   private def parseStartTag(r: CharReader): Option[(CharReader, String, Seq[(String, String)], Boolean, CharReader)] =
     if r.ch == '<' then
       val r1 = skip(r.next)
       val (start, r2) = consume(r1, c => c.isWhitespace || c == '/' || c == '>')
-      val r3 = skip(r2)
+      val (attrs, r3) = parseAttributes(r2)
+      val r4 = skip(r3)
 
-      if r3.ch == '/' then
-        val r4 = skip(r3.next)
+      if r4.ch == '/' then
+        val r5 = skip(r4.next)
 
-        if r4.ch != '>' then None
-        else Some((r1, start, Nil, true, r4.next))
-      else if r3.ch != '>' then None
-      else Some((r1, start, Nil, false, r3.next))
+        if r5.ch != '>' then None
+        else Some((r1, start, attrs, true, r5.next))
+      else if r4.ch != '>' then None
+      else Some((r1, start, attrs, false, r4.next))
     else None
 
   private def parseEndTag(r: CharReader): Option[(CharReader, String, CharReader)] =
@@ -92,7 +89,7 @@ object XML:
           case None => r.error("error parsing start tag")
           case Some(r0, start, attrs, closed, r1) =>
             if closed then
-              (Element(r0, start, Nil, Nil), r1)
+              (Element(r0, start, attrs, Nil), r1)
             else
               val (seq, r2) = parseSeq(r1)
 
@@ -101,7 +98,7 @@ object XML:
                 case Some((r3, end, r4)) =>
                   if start != end then r3.error(s"start ($start) and end tags are not the same")
 
-                  (Element(r0, start, Nil, seq), r4)
+                  (Element(r0, start, attrs, seq), r4)
       case _ =>
         val (text, r1) = consume(r, _ == '<')
 
