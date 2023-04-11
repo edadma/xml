@@ -21,7 +21,10 @@ object XML:
         buf += c
         consume(r.next, until, buf)
 
-  private def parseAttributes(r: CharReader, buf: ListBuffer[(String, String)] = new ListBuffer): (Seq[(String, String)], CharReader) =
+  private def parseAttributes(
+      r: CharReader,
+      buf: ListBuffer[(String, String)] = new ListBuffer,
+  ): (Seq[(String, String)], CharReader) =
     val r1 = skip(r)
 
     if r1.ch.isLetter then
@@ -88,8 +91,7 @@ object XML:
         parseStartTag(r) match
           case None => r.error("error parsing start tag")
           case Some(r0, start, attrs, closed, r1) =>
-            if closed then
-              (Element(r0, start, attrs, Nil), r1)
+            if closed then (Element(r0, start, attrs, Nil), r1)
             else
               val (seq, r2) = parseSeq(r1)
 
