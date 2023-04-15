@@ -55,6 +55,10 @@ object XML:
   private def parseStartTag(r: CharReader): Option[(CharReader, String, Map[String, String], Boolean, CharReader)] =
     if r.ch == '<' then
       val r1 = skip(r.next)
+
+      if !r1.ch.isLetter && r1.ch != '_' then
+        r1.error("expected a letter or an underscore as the first character of a tag name")
+
       val (start, r2) = consume(r1, c => c.isWhitespace || c == '/' || c == '>')
       val (attrs, r3) = parseAttributes(r2)
       val r4 = skip(r3)
