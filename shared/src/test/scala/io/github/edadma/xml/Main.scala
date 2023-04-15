@@ -25,10 +25,8 @@ import pprint.pprintln
 //  pprintln(XML(scala.io.Source.fromString(""" <ide charset="UTF-8" /> """)))
 
   println(test("""
-                 |<note>
+                 |<note date="2008-01-10">
                  |  <to>Tove</to>
                  |  <from>Jani</from>
-                 |  <heading>Reminder</heading>
-                 |  <body>Don't forget me this weekend!</body>
                  |</note>
                  |""".trim.stripMargin))

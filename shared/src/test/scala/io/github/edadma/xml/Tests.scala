@@ -60,3 +60,34 @@ class Tests extends AnyFreeSpec with Matchers:
         |)
         |""".trim.stripMargin
   }
+
+  "attribute" in {
+    test("""
+        |<note date="2008-01-10">
+        |  <to>Tove</to>
+        |  <from>Jani</from>
+        |</note>
+        |""".stripMargin) shouldBe
+      s"""
+        |Element(
+        |  name = "note",
+        |  attrs = Map("date" -> "2008-01-10"),
+        |  body = List(
+        |    Text(
+        |      s = \"\"\"
+        |  \"\"\"
+        |    ),
+        |    Element(name = "to", attrs = Map(), body = List(Text(s = "Tove"))),
+        |    Text(
+        |      s = \"\"\"
+        |  \"\"\"
+        |    ),
+        |    Element(name = "from", attrs = Map(), body = List(Text(s = "Jani"))),
+        |    Text(
+        |      s = \"\"\"
+        |\"\"\"
+        |    )
+        |  )
+        |)
+        |""".trim.stripMargin
+  }
