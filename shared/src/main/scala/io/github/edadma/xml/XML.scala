@@ -2,7 +2,6 @@ package io.github.edadma.xml
 
 import io.github.edadma.char_reader.CharReader
 import io.github.edadma.char_reader.CharReader.EOI
-import pprint.pprintln
 
 import scala.annotation.tailrec
 import scala.collection.mutable
