@@ -126,9 +126,14 @@ object XML:
 
 abstract class XML:
   var pos: CharReader = null
+  var prolog: Map[String, String] = null
 
   def pos(p: CharReader): XML =
     pos = p
+    this
+
+  def prolog(p: Map[String, String]): XML =
+    prolog = p
     this
 
 case class Element(name: String, attrs: Map[String, String], body: Seq[XML]) extends XML
