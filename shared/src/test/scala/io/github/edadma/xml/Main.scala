@@ -24,4 +24,11 @@ import pprint.pprintln
 
 //  pprintln(XML(scala.io.Source.fromString(""" <ide charset="UTF-8" /> """)))
 
-  pprintln(XML(scala.io.Source.fromFile("../compositor/tests/john1:1.xml")))
+  println(test("""
+                 |<note>
+                 |  <to>Tove</to>
+                 |  <from>Jani</from>
+                 |  <heading>Reminder</heading>
+                 |  <body>Don't forget me this weekend!</body>
+                 |</note>
+                 |""".trim.stripMargin))
