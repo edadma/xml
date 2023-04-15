@@ -32,19 +32,21 @@ object XML:
   ): (Map[String, String], CharReader) =
     val r1 = skip(r)
 
-    if r1.ch.isLetter then
-      val (key, r2) = consume(r1, !_.isLetter)
+    if r1.ch.isLetter || r1.ch == '_' then
+      val (key, r2) = consume(r1, c => !(c.isLetterOrDigit || c == '_' || c == '-' || c == '.'))
       val r3 = skip(r2)
 
-      if r3.ch != '=' then r3.error("error parsing attribute")
+      if r3.ch != '=' then r3.error("expected a '=' while parsing attribute")
 
       val r4 = skip(r3.next)
+      val delim = r4.ch
 
-      if r4.ch != '"' then r4.error("error parsing attribute")
+      if delim != '"' && delim != '\'' then r4.error("expected a single or double quote while parsing attribute")
 
-      val (value, r5) = consume(r4.next, _ == '"')
+      val (value, r5) = consume(r4.next, _ == delim)
 
-      if r5.ch != '"' then r5.error("unclosed attribute value")
+      if r5.ch != delim then r5.error("unclosed attribute value")
+      if map contains key then r1.error("duplicate key name")
 
       map(key) = value
       parseAttributes(r5.next, map)
