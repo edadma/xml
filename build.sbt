@@ -7,7 +7,7 @@ lazy val xml = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .in(file("."))
   .settings(
     name := "xml",
-    version := "0.0.1",
+    version := "0.0.2",
     scalaVersion := "3.2.2",
     scalacOptions ++=
       Seq(
@@ -22,12 +22,12 @@ lazy val xml = crossProject(JSPlatform, JVMPlatform, NativePlatform)
     organization := "io.github.edadma",
     githubOwner := "edadma",
     githubRepository := name.value,
-    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.15" % "test",
     libraryDependencies ++= Seq(
-      "io.github.edadma" %%% "char-reader" % "0.1.11",
+      "org.scalatest" %%% "scalatest" % "3.2.15" % "test",
+      "com.lihaoyi" %%% "pprint" % "0.8.1" % "test",
     ),
     libraryDependencies ++= Seq(
-      "com.lihaoyi" %%% "pprint" % "0.8.1",
+      "io.github.edadma" %%% "char-reader" % "0.1.11",
     ),
     publishMavenStyle := true,
     Test / publishArtifact := false,
