@@ -7,7 +7,7 @@ lazy val xml = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .in(file("."))
   .settings(
     name := "xml",
-    version := "0.0.4",
+    version := "0.0.5",
     scalaVersion := "3.2.2",
     scalacOptions ++=
       Seq(

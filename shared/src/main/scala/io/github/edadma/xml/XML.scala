@@ -123,26 +123,47 @@ object XML:
     else
       val (xml, r1) = parse(r)
 
-      buf += xml
+      (buf.lastOption, xml) match
+        case (Some(l @ Text(left)), Text(right)) => buf(buf.length - 1) = Text(left ++ right).pos(l.pos)
+        case _                                   => buf += xml
       parseSeq(r1, buf)
 
+  @tailrec
+  private def matches(r: CharReader, s: String, idx: Int = 0): Option[CharReader] =
+    if idx >= s.length then Some(r)
+    else if r.ch == s(idx) then matches(r.next, s, idx + 1)
+    else None
+
+  @tailrec
+  private def parseComment(r: CharReader): CharReader =
+    if r.ch == EOI then r.error("unclosed comment")
+
+    matches(r, "-->") match
+      case None     => parseComment(r.next)
+      case Some(r1) => r1
+
+  @tailrec
   def parse(r: CharReader): (XML, CharReader) =
     r.ch match
       case EOI => r.error("unexpected end of input")
       case '<' =>
-        parseStartTag(r) match
-          case None => r.error("error parsing start tag")
-          case Some(r0, start, attrs, closed, r1) =>
-            if closed then (Element(start, attrs, Nil).pos(r0), r1)
-            else
-              val (seq, r2) = parseSeq(r1)
+        matches(r, "<!--") match
+          case Some(r1) => parse(parseComment(r1))
+          case None =>
+            parseStartTag(r) match
+              case None => r.error("error parsing start tag")
+              case Some(r0, start, attrs, closed, r1) =>
+                if closed then (Element(start, attrs, Nil).pos(r0), r1)
+                else
+                  val (seq, r2) = parseSeq(r1)
 
-              parseEndTag(r2) match
-                case None => r2.error(s"expected end tag: </$start>")
-                case Some((r3, end, r4)) =>
-                  if start != end then r3.error(s"start ($start) and end ($end) tags are not the same")
+                  parseEndTag(r2) match
+                    case None => r2.error(s"expected end tag: </$start>")
+                    case Some((r3, end, r4)) =>
+                      if start != end then r3.error(s"start ($start) and end ($end) tags are not the same")
 
-                  (Element(start, attrs, seq).pos(r0), r4)
+                      (Element(start, attrs, seq).pos(r0), r4)
+        end match
       case _ =>
         val (text, r1) = consume(r, _ == '<')
 

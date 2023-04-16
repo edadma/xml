@@ -33,6 +33,13 @@ class Tests extends AnyFreeSpec with Matchers:
         |""".trim.stripMargin
   }
 
+  "text in inner element commented out" in {
+    test("<tag>asdf<!--<inner>zx&amp;cv</inner>-->qwer</tag>") shouldBe
+      """
+        |Element(name = "tag", attrs = Map(), body = List(Text(s = "asdfqwer")))
+        |""".trim.stripMargin
+  }
+
   "closed element" in {
     test("<tag />") shouldBe
       """
