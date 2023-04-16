@@ -149,7 +149,7 @@ object XML:
 
   def apply(s: scala.io.Source): XML =
     val r = CharReader.fromString(s.mkString)
-    val (_, p, r1) = parseProlog(r).getOrElse((null, Map(), r))
+    val (_, p, r1) = parseProlog(skip(r)).getOrElse((null, Map(), r))
     val (xml, r2) = parse(skip(r1))
     val r3 = skip(r2)
 
