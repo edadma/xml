@@ -51,6 +51,32 @@ object XML:
       parseAttributes(r5.next, map)
     else (map.toMap, r)
 
+  private def parseProlog(r: CharReader): Option[(CharReader, Map[String, String], Boolean, CharReader)] =
+    if r.ch != '<' then None
+    else
+      val r0 = r.next
+
+      if r0.ch != '?' then None
+      else
+        val r1 = skip(r.next)
+
+        if !r1.ch.isLetter && r1.ch != '_' then
+          r1.error("expected a letter or an underscore as the first character of a tag name")
+
+        val (start, r2) = consume(r1, c => c.isWhitespace || c == '?')
+
+        if start != "xml" then None
+        else
+          val (attrs, r3) = parseAttributes(r2)
+          val r4 = skip(r3)
+
+          if r4.ch != '?' then None
+          else
+            val r5 = r4.next
+
+            if r5.ch != '>' then None
+            else Some((r1, attrs, true, r5.next))
+
   private def parseStartTag(r: CharReader): Option[(CharReader, String, Map[String, String], Boolean, CharReader)] =
     if r.ch == '<' then
       val r1 = skip(r.next)
@@ -119,10 +145,11 @@ object XML:
   end parse
 
   def apply(s: scala.io.Source): XML =
-    val (xml, r) = parse(skip(CharReader.fromString(s.mkString)))
-    val r1 = skip(r)
+    val r = CharReader.fromString(s.mkString)
+    val (xml, r1) = parse(skip(r))
+    val r2 = skip(r1)
 
-    if r1.ch == EOI then xml else r1.error("expected end of input")
+    if r2.ch == EOI then xml else r2.error("expected end of input")
 
 abstract class XML:
   var pos: CharReader = null
