@@ -47,9 +47,12 @@ object XML:
       if r5.ch != delim then r5.error("unclosed attribute value")
       if map contains key then r1.error("duplicate key name")
 
-      map(key) = value
+      map(key) = entities(value)
       parseAttributes(r5.next, map)
     else (map.toMap, r)
+
+  private def entities(s: String): String =
+    s.replace("&gt;", ">").replace("&lt;", "<").replace("&apos;", "'").replace("&quot;", "\"").replace("&amp;", "&")
 
   private def parseProlog(r: CharReader): Option[(CharReader, Map[String, String], CharReader)] =
     if r.ch != '<' then None
@@ -125,7 +128,6 @@ object XML:
 
   def parse(r: CharReader): (XML, CharReader) =
     r.ch match
-      // todo: &amp; (&), &lt; (<), &gt; (>), &quot; ("), &apos; (')
       case EOI => r.error("unexpected end of input")
       case '<' =>
         parseStartTag(r) match
@@ -136,15 +138,15 @@ object XML:
               val (seq, r2) = parseSeq(r1)
 
               parseEndTag(r2) match
-                case None => r2.error("expected end tag")
+                case None => r2.error(s"expected end tag: </$start>")
                 case Some((r3, end, r4)) =>
-                  if start != end then r3.error(s"start ($start) and end tags are not the same")
+                  if start != end then r3.error(s"start ($start) and end ($end) tags are not the same")
 
                   (Element(start, attrs, seq).pos(r0), r4)
       case _ =>
         val (text, r1) = consume(r, _ == '<')
 
-        (Text(text).pos(r), r1)
+        (Text(entities(text)).pos(r), r1)
   end parse
 
   def apply(s: scala.io.Source): XML =

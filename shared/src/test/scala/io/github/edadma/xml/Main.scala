@@ -28,5 +28,5 @@ import pprint.pprintln
 //  println(xml.prolog)
 
   println(test("""
-                 |<tag>asdf<inner>zxcv</inner>qwer</tag>
+                 |<tag attr='as&apos;df'>asdf<inner>zxcv</inner>qw&apos;er</tag>
                  |""".trim.stripMargin))
