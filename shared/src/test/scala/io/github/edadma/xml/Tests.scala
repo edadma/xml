@@ -116,3 +116,45 @@ class Tests extends AnyFreeSpec with Matchers:
         |)
         |""".trim.stripMargin
   }
+
+  "prolog 1" in {
+    test("""
+        |<?xml version="1.0" encoding="UTF-8"?>
+        |<note date="2008-01-10">
+        |  <to>Tove</to>
+        |  <from>Jani</from>
+        |</note>
+        |""".stripMargin) shouldBe
+      s"""
+         |Element(
+         |  name = "note",
+         |  attrs = Map("date" -> "2008-01-10"),
+         |  body = List(
+         |    Text(
+         |      s = \"\"\"
+         |  \"\"\"
+         |    ),
+         |    Element(name = "to", attrs = Map(), body = List(Text(s = "Tove"))),
+         |    Text(
+         |      s = \"\"\"
+         |  \"\"\"
+         |    ),
+         |    Element(name = "from", attrs = Map(), body = List(Text(s = "Jani"))),
+         |    Text(
+         |      s = \"\"\"
+         |\"\"\"
+         |    )
+         |  )
+         |)
+         |""".trim.stripMargin
+  }
+
+  "prolog 2" in {
+    XML(scala.io.Source.fromString("""
+        |<?xml version="1.0" encoding="UTF-8"?>
+        |<note date="2008-01-10">
+        |  <to>Tove</to>
+        |  <from>Jani</from>
+        |</note>
+        |""".stripMargin)).prolog shouldBe Map("encoding" -> "UTF-8", "version" -> "1.0")
+  }

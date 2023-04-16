@@ -51,14 +51,14 @@ object XML:
       parseAttributes(r5.next, map)
     else (map.toMap, r)
 
-  private def parseProlog(r: CharReader): Option[(CharReader, Map[String, String], Boolean, CharReader)] =
+  private def parseProlog(r: CharReader): Option[(CharReader, Map[String, String], CharReader)] =
     if r.ch != '<' then None
     else
       val r0 = r.next
 
       if r0.ch != '?' then None
       else
-        val r1 = skip(r.next)
+        val r1 = skip(r0.next)
 
         if !r1.ch.isLetter && r1.ch != '_' then
           r1.error("expected a letter or an underscore as the first character of a tag name")
@@ -75,7 +75,7 @@ object XML:
             val r5 = r4.next
 
             if r5.ch != '>' then None
-            else Some((r1, attrs, true, r5.next))
+            else Some((r1, attrs, r5.next))
 
   private def parseStartTag(r: CharReader): Option[(CharReader, String, Map[String, String], Boolean, CharReader)] =
     if r.ch == '<' then
@@ -85,6 +85,9 @@ object XML:
         r1.error("expected a letter or an underscore as the first character of a tag name")
 
       val (start, r2) = consume(r1, c => c.isWhitespace || c == '/' || c == '>')
+
+      if start.toLowerCase startsWith "xml" then r1.error("a tag name may not begin with the letters 'xml'")
+
       val (attrs, r3) = parseAttributes(r2)
       val r4 = skip(r3)
 
@@ -146,14 +149,15 @@ object XML:
 
   def apply(s: scala.io.Source): XML =
     val r = CharReader.fromString(s.mkString)
-    val (xml, r1) = parse(skip(r))
-    val r2 = skip(r1)
+    val (_, p, r1) = parseProlog(r).getOrElse((null, Map(), r))
+    val (xml, r2) = parse(skip(r1))
+    val r3 = skip(r2)
 
-    if r2.ch == EOI then xml else r2.error("expected end of input")
+    if r3.ch == EOI then xml.prolog(p) else r3.error("expected end of input")
 
 abstract class XML:
   var pos: CharReader = null
-  var prolog: Map[String, String] = null
+  var prolog: Map[String, String] = Map()
 
   def pos(p: CharReader): XML =
     pos = p
