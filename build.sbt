@@ -7,7 +7,7 @@ lazy val xml = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .in(file("."))
   .settings(
     name := "xml",
-    version := "0.0.5",
+    version := "0.0.6",
     scalaVersion := "3.2.2",
     scalacOptions ++=
       Seq(
@@ -38,7 +38,6 @@ lazy val xml = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   )
   .nativeSettings(
     nativeLinkStubs := true,
-    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.5.0",
   )
   .jsSettings(
     jsEnv := new org.scalajs.jsenv.nodejs.NodeJSEnv(),
@@ -47,5 +46,4 @@ lazy val xml = crossProject(JSPlatform, JVMPlatform, NativePlatform)
     Test / scalaJSUseMainModuleInitializer := false,
     Test / scalaJSUseTestModuleInitializer := true,
     scalaJSUseMainModuleInitializer := true,
-    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.5.0",
   )
