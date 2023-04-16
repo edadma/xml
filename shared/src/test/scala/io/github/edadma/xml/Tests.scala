@@ -18,6 +18,21 @@ class Tests extends AnyFreeSpec with Matchers:
         |""".trim.stripMargin
   }
 
+  "text in inner element" in {
+    test("<tag>asdf<inner>zxcv</inner>qwer</tag>") shouldBe
+      """
+        |Element(
+        |  name = "tag",
+        |  attrs = Map(),
+        |  body = List(
+        |    Text(s = "asdf"),
+        |    Element(name = "inner", attrs = Map(), body = List(Text(s = "zxcv"))),
+        |    Text(s = "qwer")
+        |  )
+        |)
+        |""".trim.stripMargin
+  }
+
   "closed element" in {
     test("<tag />") shouldBe
       """

@@ -22,11 +22,11 @@ import pprint.pprintln
 //      |</p></book>
 //      |""".stripMargin)))
 
-  val xml = XML(scala.io.Source.fromFile("tests/note.xml"))
+//  val xml = XML(scala.io.Source.fromFile("tests/note.xml"))
+//
+//  pprintln(xml)
+//  println(xml.prolog)
 
-  pprintln(xml)
-  println(xml.prolog)
-
-//  println(test("""
-//                 |<tag a='b'/>
-//                 |""".trim.stripMargin))
+  println(test("""
+                 |<tag>asdf<inner>zxcv</inner>qwer</tag>
+                 |""".trim.stripMargin))
