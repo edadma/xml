@@ -25,5 +25,5 @@ import pprint.pprintln
 //  pprintln(XML(scala.io.Source.fromString(""" <ide charset="UTF-8" /> """)))
 
   println(test("""
-                 |<tag a1='asdf' a_b-c.d="zxcv">asdf</tag>
+                 |<tag a='b'/>
                  |""".trim.stripMargin))

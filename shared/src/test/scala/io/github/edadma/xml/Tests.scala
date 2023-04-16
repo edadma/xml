@@ -18,6 +18,20 @@ class Tests extends AnyFreeSpec with Matchers:
         |""".trim.stripMargin
   }
 
+  "closed element" in {
+    test("<tag />") shouldBe
+      """
+        |Element(name = "tag", attrs = Map(), body = List())
+        |""".trim.stripMargin
+  }
+
+  "closed element with attributes" in {
+    test("<tag a='b'/>") shouldBe
+      """
+        |Element(name = "tag", attrs = Map("a" -> "b"), body = List())
+        |""".trim.stripMargin
+  }
+
   "attribute names and single quotes" in {
     test("<tag a1='asdf' a_b-c.d=\"zxcv\">asdf</tag>") shouldBe
       """
