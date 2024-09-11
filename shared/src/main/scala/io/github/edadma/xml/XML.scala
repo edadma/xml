@@ -89,7 +89,7 @@ object XML:
 
       val (start, r2) = consume(r1, c => c.isWhitespace || c == '/' || c == '>')
 
-      if start.toLowerCase startsWith "xml" then r1.error("a tag name may not begin with the letters 'xml'")
+      if start.toLowerCase.startsWith("xml") then r1.error("a tag name may not begin with the letters 'xml'")
 
       val (attrs, r3) = parseAttributes(r2)
       val r4 = skip(r3)
